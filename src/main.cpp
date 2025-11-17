@@ -46,6 +46,13 @@ void clearCin() {
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
+int findIndexById(int id) {
+    for (size_t i = 0; i < inventory.size(); ++i) {
+        if (inventory[i].id == id) return (int)i;
+    }
+    return -1;
+}
+
 // ====================== CSV Persistence ======================
 bool loadFromCSV(const string &filename) {
     inventory.clear();
@@ -146,6 +153,70 @@ void addProduct() {
     cout << "Product added successfully with ID " << id << ".\n";
 }
 
+// ====================== Update Product Function ======================
+void updateProduct() {
+    if (inventory.empty()) {
+        cout << "Inventory is empty. Nothing to update.\n";
+        return;
+    }
+
+    cout << "\n--- Update Product ---\n";
+    cout << "Enter product ID to update: ";
+    int id;
+    if (!(cin >> id)) {
+        cout << "Invalid ID input.\n";
+        clearCin();
+        return;
+    }
+
+    int idx = findIndexById(id);
+    if (idx == -1) {
+        cout << "Product with ID " << id << " not found.\n";
+        return;
+    }
+
+    cout << "Selected: ID=" << inventory[idx].id << ", Name=\"" << inventory[idx].name
+         << "\", Quantity=" << inventory[idx].quantity << ", Price=" << inventory[idx].price << '\n';
+
+    // Update quantity?
+    cout << "Do you want to update quantity? (y/n): ";
+    char ch;
+    cin >> ch;
+    bool changed = false;
+    if (ch == 'y' || ch == 'Y') {
+        cout << "Enter new quantity (integer >= 0): ";
+        int newQty;
+        if (!(cin >> newQty) || newQty < 0) {
+            cout << "Invalid quantity. Aborting update of quantity.\n";
+            clearCin();
+        } else {
+            inventory[idx].quantity = newQty;
+            changed = true;
+        }
+    }
+
+    // Update price?
+    cout << "Do you want to update price? (y/n): ";
+    cin >> ch;
+    if (ch == 'y' || ch == 'Y') {
+        cout << "Enter new price (>= 0): ";
+        double newPrice;
+        if (!(cin >> newPrice) || newPrice < 0.0) {
+            cout << "Invalid price. Aborting update of price.\n";
+            clearCin();
+        } else {
+            inventory[idx].price = newPrice;
+            changed = true;
+        }
+    }
+
+    if (changed) {
+        cout << "Product updated successfully.\n";
+    } else {
+        cout << "No changes made to the product.\n";
+    }
+}
+
 // ====================== View Products Function ======================
 void viewProducts() {
     if (inventory.empty()) {
@@ -173,6 +244,7 @@ int main() {
         cout << "1. Add Product\n";
         cout << "2. View Products\n";
         cout << "3. Save to CSV\n";
+        cout << "4. Update Product (quantity/price)\n";
         cout << "0. Exit\n";
         cout << "Enter your choice: ";
         if (!(cin >> choice)) {
@@ -190,6 +262,9 @@ int main() {
         else if (choice == 3) {
             if (saveToCSV(dataFile)) cout << "Saved to " << dataFile << '\n';
             else cout << "Save failed.\n";
+        }
+        else if (choice == 4) {
+            updateProduct();
         }
         else if (choice == 0) {
             cout << "Saving before exit...\n";
