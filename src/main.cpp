@@ -7,6 +7,9 @@
 #include <iomanip>
 using namespace std;
 
+// ====================== Config ======================
+const string dataFile = "data/inventory.csv";
+
 // ====================== Product Class ======================
 class Product {
 public:
@@ -71,14 +74,11 @@ bool loadFromCSV(const string &filename) {
     string line;
     if (!getline(fin, line)) return true;
 
-    bool headerSkipped = false;
+    // If header is data, we'll reset and parse from beginning
     {
         string trimmed = line;
         while (!trimmed.empty() && isspace((unsigned char)trimmed.back())) trimmed.pop_back();
-        if (trimmed.find_first_not_of("0123456789") == string::npos || trimmed.rfind("id,", 0) == 0) {
-            headerSkipped = true;
-        } else {
-            headerSkipped = false;
+        if (!(trimmed.find_first_not_of("0123456789") == string::npos || trimmed.rfind("id,", 0) == 0)) {
             fin.clear();
             fin.seekg(0);
         }
@@ -118,7 +118,23 @@ bool saveToCSV(const string &filename) {
     return true;
 }
 
-// ====================== Add Product Function ======================
+// ====================== Pretty Table Utilities ======================
+void printTableHeader() {
+    cout << left << setw(6) << "ID"
+         << left << setw(30) << "Name"
+         << right << setw(10) << "Quantity"
+         << right << setw(12) << "Price" << '\n';
+    cout << string(58, '-') << '\n';
+}
+
+void printProductRow(const Product &p) {
+    cout << left << setw(6) << p.id
+         << left << setw(30) << p.name
+         << right << setw(10) << p.quantity
+         << right << setw(12) << fixed << setprecision(2) << p.price << '\n';
+}
+
+// ====================== Add Product Function (auto-save) ======================
 void addProduct() {
     string name;
     int quantity = 0;
@@ -150,9 +166,13 @@ void addProduct() {
     int id = nextId();
     inventory.emplace_back(id, name, quantity, price);
     cout << "Product added successfully with ID " << id << ".\n";
+
+    // Auto-save
+    if (saveToCSV(dataFile)) cout << "Auto-saved to " << dataFile << '\n';
+    else cout << "Auto-save failed.\n";
 }
 
-// ====================== Update Product Function ======================
+// ====================== Update Product Function (auto-save) ======================
 void updateProduct() {
     if (inventory.empty()) {
         cout << "Inventory is empty. Nothing to update.\n";
@@ -174,8 +194,9 @@ void updateProduct() {
         return;
     }
 
-    cout << "Selected: ID=" << inventory[idx].id << ", Name=\"" << inventory[idx].name
-         << "\", Quantity=" << inventory[idx].quantity << ", Price=" << inventory[idx].price << '\n';
+    cout << "Selected:\n";
+    printTableHeader();
+    printProductRow(inventory[idx]);
 
     cout << "Do you want to update quantity? (y/n): ";
     char ch;
@@ -209,12 +230,14 @@ void updateProduct() {
 
     if (changed) {
         cout << "Product updated successfully.\n";
+        if (saveToCSV(dataFile)) cout << "Auto-saved to " << dataFile << '\n';
+        else cout << "Auto-save failed.\n";
     } else {
         cout << "No changes made to the product.\n";
     }
 }
 
-// ====================== Delete Product Function ======================
+// ====================== Delete Product Function (auto-save) ======================
 void deleteProduct() {
     if (inventory.empty()) {
         cout << "Inventory is empty. Nothing to delete.\n";
@@ -236,14 +259,18 @@ void deleteProduct() {
         return;
     }
 
-    cout << "Selected: ID=" << inventory[idx].id << ", Name=\"" << inventory[idx].name
-         << "\", Quantity=" << inventory[idx].quantity << ", Price=" << inventory[idx].price << '\n';
+    cout << "Selected:\n";
+    printTableHeader();
+    printProductRow(inventory[idx]);
+
     cout << "Are you sure you want to delete this product? This action cannot be undone. (y/n): ";
     char ch;
     cin >> ch;
     if (ch == 'y' || ch == 'Y') {
         inventory.erase(inventory.begin() + idx);
         cout << "Product deleted successfully.\n";
+        if (saveToCSV(dataFile)) cout << "Auto-saved to " << dataFile << '\n';
+        else cout << "Auto-save failed.\n";
     } else {
         cout << "Delete cancelled.\n";
     }
@@ -278,10 +305,8 @@ void searchProducts() {
     }
 
     cout << "\nMatches:\n";
-    cout << "ID\tName\tQuantity\tPrice\n";
-    for (const auto &p : results) {
-        cout << p.id << "\t" << p.name << "\t" << p.quantity << "\t" << p.price << "\n";
-    }
+    printTableHeader();
+    for (const auto &p : results) printProductRow(p);
 }
 
 // ====================== View Products Function ======================
@@ -291,16 +316,12 @@ void viewProducts() {
         return;
     }
 
-    cout << "\nID\tName\tQuantity\tPrice\n";
-    for (const auto &p : inventory) {
-        cout << p.id << "\t" << p.name << "\t" << p.quantity << "\t" << p.price << "\n";
-    }
+    printTableHeader();
+    for (const auto &p : inventory) printProductRow(p);
 }
 
 // ====================== Main Menu ======================
 int main() {
-    const string dataFile = "data/inventory.csv";
-
     cout << "Loading inventory from " << dataFile << " ...\n";
     if (loadFromCSV(dataFile)) cout << "Loaded inventory (" << inventory.size() << " items).\n";
     else cout << "No existing data found; starting with empty inventory.\n";
