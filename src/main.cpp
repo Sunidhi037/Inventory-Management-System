@@ -1,5 +1,21 @@
 #include <iostream>
+#include <string>
 using namespace std;
+
+class Product {
+public:
+    int id;
+    string name;
+    int quantity;
+    double price;
+
+    Product(int _id, string _name, int _quantity, double _price) {
+        id = _id;
+        name = _name;
+        quantity = _quantity;
+        price = _price;
+    }
+};
 
 int main() {
     cout << "=== Inventory Management System ===\n";
