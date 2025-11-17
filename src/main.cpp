@@ -53,6 +53,12 @@ int findIndexById(int id) {
     return -1;
 }
 
+string toLower(const string &s) {
+    string t = s;
+    for (char &c : t) c = (char)tolower((unsigned char)c);
+    return t;
+}
+
 // ====================== CSV Persistence ======================
 bool loadFromCSV(const string &filename) {
     inventory.clear();
@@ -243,6 +249,41 @@ void deleteProduct() {
     }
 }
 
+// ====================== Search Products Function ======================
+void searchProducts() {
+    if (inventory.empty()) {
+        cout << "Inventory is empty. Nothing to search.\n";
+        return;
+    }
+
+    cout << "\n--- Search Products ---\n";
+    cout << "Enter name or substring to search (case-insensitive): ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    string query;
+    getline(cin, query);
+    if (query.empty()) {
+        cout << "Empty query. Aborting search.\n";
+        return;
+    }
+
+    string q = toLower(query);
+    vector<Product> results;
+    for (const auto &p : inventory) {
+        if (toLower(p.name).find(q) != string::npos) results.push_back(p);
+    }
+
+    if (results.empty()) {
+        cout << "No matching products found for \"" << query << "\".\n";
+        return;
+    }
+
+    cout << "\nMatches:\n";
+    cout << "ID\tName\tQuantity\tPrice\n";
+    for (const auto &p : results) {
+        cout << p.id << "\t" << p.name << "\t" << p.quantity << "\t" << p.price << "\n";
+    }
+}
+
 // ====================== View Products Function ======================
 void viewProducts() {
     if (inventory.empty()) {
@@ -272,6 +313,7 @@ int main() {
         cout << "3. Save to CSV\n";
         cout << "4. Update Product (quantity/price)\n";
         cout << "5. Delete Product\n";
+        cout << "6. Search Product\n";
         cout << "0. Exit\n";
         cout << "Enter your choice: ";
         if (!(cin >> choice)) {
@@ -295,6 +337,9 @@ int main() {
         }
         else if (choice == 5) {
             deleteProduct();
+        }
+        else if (choice == 6) {
+            searchProducts();
         }
         else if (choice == 0) {
             cout << "Saving before exit...\n";
