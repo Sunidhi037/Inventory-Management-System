@@ -1,0 +1,1 @@
+-e "ims\n*.exe\n*.o\n.vscode/\n" 
