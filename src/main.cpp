@@ -3,6 +3,7 @@
 #include <vector>
 using namespace std;
 
+// ====================== Product Class ======================
 class Product {
 public:
     int id;
@@ -18,32 +19,23 @@ public:
     }
 };
 
-vector<Product> inventory;
+// ====================== Inventory Storage ======================
+vector<Product> inventory;   // global vector
 
-void addProduct() {
-    int id, quantity;
-    string name;
-    double price;
+// ====================== View Products Function ======================
+void viewProducts() {
+    if (inventory.empty()) {
+        cout << "No products available.\n";
+        return;
+    }
 
-    cout << "Enter ID: ";
-    cin >> id;
-
-    cout << "Enter Name: ";
-    cin.ignore();
-    getline(cin, name);
-
-    cout << "Enter Quantity: ";
-    cin >> quantity;
-
-    cout << "Enter Price: ";
-    cin >> price;
-
-    Product p(id, name, quantity, price);
-    inventory.push_back(p);
-
-    cout << "Product Added Successfully!\n";
+    cout << "\nID\tName\tQuantity\tPrice\n";
+    for (auto &p : inventory) {
+        cout << p.id << "\t" << p.name << "\t" << p.quantity << "\t" << p.price << "\n";
+    }
 }
 
+// ====================== Main Menu ======================
 int main() {
     int choice;
 
@@ -55,12 +47,19 @@ int main() {
         cout << "Enter your choice: ";
         cin >> choice;
 
-        if (choice == 1)
-            addProduct();
-        else if (choice == 0)
+        if (choice == 1) {
+            cout << "Add product feature coming soon!\n"; // temporary
+        }
+        else if (choice == 2) {
+            viewProducts();   // working feature
+        }
+        else if (choice == 0) {
+            cout << "Exiting...\n";
             break;
-        else
-            cout << "Invalid choice!\n";
+        }
+        else {
+            cout << "Invalid choice! Try again.\n";
+        }
     }
 
     return 0;
