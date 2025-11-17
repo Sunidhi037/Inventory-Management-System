@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <limits>
 using namespace std;
 
 // ====================== Product Class ======================
@@ -22,6 +23,52 @@ public:
 // ====================== Inventory Storage ======================
 vector<Product> inventory;   // global vector
 
+// ====================== Helpers ======================
+int nextId() {
+    int mx = 0;
+    for (const auto &p : inventory) if (p.id > mx) mx = p.id;
+    return mx + 1;
+}
+
+void clearCin() {
+    cin.clear();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
+// ====================== Add Product Function ======================
+void addProduct() {
+    string name;
+    int quantity = 0;
+    double price = 0.0;
+
+    cout << "\n--- Add New Product ---\n";
+    cout << "Enter product name: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // clear leftover newline
+    getline(cin, name);
+    if (name.empty()) {
+        cout << "Product name cannot be empty. Aborting add.\n";
+        return;
+    }
+
+    cout << "Enter quantity (integer >= 0): ";
+    if (!(cin >> quantity) || quantity < 0) {
+        cout << "Invalid quantity. Aborting add.\n";
+        clearCin();
+        return;
+    }
+
+    cout << "Enter price (e.g. 99.99, >= 0): ";
+    if (!(cin >> price) || price < 0.0) {
+        cout << "Invalid price. Aborting add.\n";
+        clearCin();
+        return;
+    }
+
+    int id = nextId();
+    inventory.emplace_back(id, name, quantity, price);
+    cout << "Product added successfully with ID " << id << ".\n";
+}
+
 // ====================== View Products Function ======================
 void viewProducts() {
     if (inventory.empty()) {
@@ -30,7 +77,7 @@ void viewProducts() {
     }
 
     cout << "\nID\tName\tQuantity\tPrice\n";
-    for (auto &p : inventory) {
+    for (const auto &p : inventory) {
         cout << p.id << "\t" << p.name << "\t" << p.quantity << "\t" << p.price << "\n";
     }
 }
@@ -45,13 +92,17 @@ int main() {
         cout << "2. View Products\n";
         cout << "0. Exit\n";
         cout << "Enter your choice: ";
-        cin >> choice;
+        if (!(cin >> choice)) {
+            cout << "Invalid input. Please enter a number.\n";
+            clearCin();
+            continue;
+        }
 
         if (choice == 1) {
-            cout << "Add product feature coming soon!\n"; // temporary
+            addProduct();
         }
         else if (choice == 2) {
-            viewProducts();   // working feature
+            viewProducts();
         }
         else if (choice == 0) {
             cout << "Exiting...\n";
