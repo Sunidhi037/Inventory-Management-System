@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 using namespace std;
 
 class Product {
@@ -16,6 +17,8 @@ public:
         price = _price;
     }
 };
+
+vector<Product> inventory;   // NEW
 
 int main() {
     cout << "=== Inventory Management System ===\n";
