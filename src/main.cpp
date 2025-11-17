@@ -63,22 +63,16 @@ bool loadFromCSV(const string &filename) {
     }
 
     string line;
-    // Read header (if present). We'll attempt to parse every subsequent line.
     if (!getline(fin, line)) return true;
 
-    // If header looks like data (starts with digit), we will try parsing it too.
-    // But typical file has header "id,name,quantity,price" so we skip it.
     bool headerSkipped = false;
     {
         string trimmed = line;
         while (!trimmed.empty() && isspace((unsigned char)trimmed.back())) trimmed.pop_back();
         if (trimmed.find_first_not_of("0123456789") == string::npos || trimmed.rfind("id,", 0) == 0) {
-            // likely header or numeric-only line — treat as header and skip
             headerSkipped = true;
         } else {
-            // line may actually be data; we'll parse it below together with others
             headerSkipped = false;
-            // reset file to beginning
             fin.clear();
             fin.seekg(0);
         }
@@ -98,7 +92,6 @@ bool loadFromCSV(const string &filename) {
             double price = stod(parts[3]);
             inventory.emplace_back(id, name, qty, price);
         } catch (...) {
-            // skip malformed line
             continue;
         }
     }
@@ -178,7 +171,6 @@ void updateProduct() {
     cout << "Selected: ID=" << inventory[idx].id << ", Name=\"" << inventory[idx].name
          << "\", Quantity=" << inventory[idx].quantity << ", Price=" << inventory[idx].price << '\n';
 
-    // Update quantity?
     cout << "Do you want to update quantity? (y/n): ";
     char ch;
     cin >> ch;
@@ -195,7 +187,6 @@ void updateProduct() {
         }
     }
 
-    // Update price?
     cout << "Do you want to update price? (y/n): ";
     cin >> ch;
     if (ch == 'y' || ch == 'Y') {
@@ -214,6 +205,41 @@ void updateProduct() {
         cout << "Product updated successfully.\n";
     } else {
         cout << "No changes made to the product.\n";
+    }
+}
+
+// ====================== Delete Product Function ======================
+void deleteProduct() {
+    if (inventory.empty()) {
+        cout << "Inventory is empty. Nothing to delete.\n";
+        return;
+    }
+
+    cout << "\n--- Delete Product ---\n";
+    cout << "Enter product ID to delete: ";
+    int id;
+    if (!(cin >> id)) {
+        cout << "Invalid ID input.\n";
+        clearCin();
+        return;
+    }
+
+    int idx = findIndexById(id);
+    if (idx == -1) {
+        cout << "Product with ID " << id << " not found.\n";
+        return;
+    }
+
+    cout << "Selected: ID=" << inventory[idx].id << ", Name=\"" << inventory[idx].name
+         << "\", Quantity=" << inventory[idx].quantity << ", Price=" << inventory[idx].price << '\n';
+    cout << "Are you sure you want to delete this product? This action cannot be undone. (y/n): ";
+    char ch;
+    cin >> ch;
+    if (ch == 'y' || ch == 'Y') {
+        inventory.erase(inventory.begin() + idx);
+        cout << "Product deleted successfully.\n";
+    } else {
+        cout << "Delete cancelled.\n";
     }
 }
 
@@ -245,6 +271,7 @@ int main() {
         cout << "2. View Products\n";
         cout << "3. Save to CSV\n";
         cout << "4. Update Product (quantity/price)\n";
+        cout << "5. Delete Product\n";
         cout << "0. Exit\n";
         cout << "Enter your choice: ";
         if (!(cin >> choice)) {
@@ -265,6 +292,9 @@ int main() {
         }
         else if (choice == 4) {
             updateProduct();
+        }
+        else if (choice == 5) {
+            deleteProduct();
         }
         else if (choice == 0) {
             cout << "Saving before exit...\n";
